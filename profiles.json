@@ -1,0 +1,396 @@
+{
+  "active": "lights",
+  "profiles": {
+    "custom": {
+      "36": {
+        "action": "turn_on",
+        "mode": "LIGHTS"
+      },
+      "38": {
+        "action": "turn_off",
+        "mode": "LIGHTS"
+      },
+      "40": {
+        "action": "movie_mode",
+        "mode": "LIGHTS"
+      },
+      "41": {
+        "action": "party_mode",
+        "mode": "LIGHTS"
+      },
+      "43": {
+        "action": "sleep_mode",
+        "mode": "LIGHTS"
+      },
+      "45": {
+        "action": "color",
+        "brightness": 80,
+        "color": "#ff0000",
+        "mode": "LIGHTS"
+      },
+      "47": {
+        "action": "color",
+        "brightness": 60,
+        "color": "#00ff88",
+        "mode": "LIGHTS"
+      },
+      "48": {
+        "action": "power_on",
+        "mode": "TV"
+      },
+      "50": {
+        "action": "netflix",
+        "mode": "TV"
+      },
+      "52": {
+        "action": "youtube",
+        "mode": "TV"
+      },
+      "53": {
+        "action": "disney",
+        "mode": "TV"
+      },
+      "55": {
+        "action": "prime",
+        "mode": "TV"
+      },
+      "57": {
+        "action": "key",
+        "key": "KEY_VOLUP",
+        "mode": "TV"
+      },
+      "59": {
+        "action": "key",
+        "key": "KEY_VOLDOWN",
+        "mode": "TV"
+      },
+      "60": {
+        "action": "KEY_SPACE",
+        "mode": "GAME"
+      },
+      "62": {
+        "action": "KEY_W",
+        "mode": "GAME"
+      },
+      "64": {
+        "action": "KEY_A",
+        "mode": "GAME"
+      },
+      "65": {
+        "action": "KEY_S",
+        "mode": "GAME"
+      },
+      "67": {
+        "action": "KEY_D",
+        "mode": "GAME"
+      },
+      "69": {
+        "action": "KEY_SHIFT",
+        "mode": "GAME"
+      },
+      "71": {
+        "action": "KEY_CTRL",
+        "mode": "GAME"
+      },
+      "72": {
+        "action": "play_pause",
+        "mode": "AUDIO"
+      },
+      "74": {
+        "action": "next_track",
+        "mode": "AUDIO"
+      },
+      "76": {
+        "action": "prev_track",
+        "mode": "AUDIO"
+      }
+    },
+    "lights": {
+      "36": {
+        "action": "turn_on",
+        "mode": "LIGHTS"
+      },
+      "38": {
+        "action": "turn_off",
+        "mode": "LIGHTS"
+      },
+      "40": {
+        "action": "movie_mode",
+        "mode": "LIGHTS"
+      },
+      "41": {
+        "action": "party_mode",
+        "mode": "LIGHTS"
+      },
+      "43": {
+        "action": "power_on",
+        "mode": "TV"
+      },
+      "48": {
+        "action": "color",
+        "brightness": 80,
+        "color": "#ff0000",
+        "mode": "LIGHTS"
+      },
+      "50": {
+        "action": "color",
+        "brightness": 80,
+        "color": "#ff8800",
+        "mode": "LIGHTS"
+      },
+      "52": {
+        "action": "color",
+        "brightness": 80,
+        "color": "#ffee00",
+        "mode": "LIGHTS"
+      },
+      "53": {
+        "action": "color",
+        "brightness": 80,
+        "color": "#00ff33",
+        "mode": "LIGHTS"
+      },
+      "55": {
+        "action": "color",
+        "brightness": 80,
+        "color": "#00ddff",
+        "mode": "LIGHTS"
+      },
+      "57": {
+        "action": "color",
+        "brightness": 80,
+        "color": "#2244ff",
+        "mode": "LIGHTS"
+      },
+      "59": {
+        "action": "color",
+        "brightness": 80,
+        "color": "#ff00ff",
+        "mode": "LIGHTS"
+      },
+      "60": {
+        "action": "color",
+        "brightness": 100,
+        "color": "#ffffff",
+        "mode": "LIGHTS"
+      },
+      "62": {
+        "action": "color",
+        "brightness": 60,
+        "color": "#ffdd99",
+        "mode": "LIGHTS"
+      },
+      "64": {
+        "action": "color",
+        "brightness": 20,
+        "color": "#ffffff",
+        "mode": "LIGHTS"
+      },
+      "72": {
+        "action": "turn_on",
+        "mode": "LIGHTS",
+        "targets": [
+          "lamp_1"
+        ]
+      },
+      "74": {
+        "action": "turn_off",
+        "mode": "LIGHTS",
+        "targets": [
+          "lamp_1"
+        ]
+      },
+      "84": {
+        "action": "turn_on",
+        "mode": "LIGHTS",
+        "targets": [
+          "lamp_2"
+        ]
+      },
+      "86": {
+        "action": "turn_off",
+        "mode": "LIGHTS",
+        "targets": [
+          "lamp_2"
+        ]
+      }
+    },
+    "pc": {
+      "36": {
+        "action": "KEY_W",
+        "mode": "GAME"
+      },
+      "38": {
+        "action": "KEY_A",
+        "mode": "GAME"
+      },
+      "40": {
+        "action": "KEY_S",
+        "mode": "GAME"
+      },
+      "41": {
+        "action": "KEY_D",
+        "mode": "GAME"
+      },
+      "43": {
+        "action": "KEY_SPACE",
+        "mode": "GAME"
+      },
+      "45": {
+        "action": "KEY_SHIFT",
+        "mode": "GAME"
+      },
+      "47": {
+        "action": "KEY_CTRL",
+        "mode": "GAME"
+      },
+      "48": {
+        "action": "KEY_Q",
+        "mode": "GAME"
+      },
+      "50": {
+        "action": "KEY_E",
+        "mode": "GAME"
+      },
+      "52": {
+        "action": "KEY_Z",
+        "mode": "GAME"
+      },
+      "53": {
+        "action": "KEY_X",
+        "mode": "GAME"
+      },
+      "55": {
+        "action": "KEY_TAB",
+        "mode": "GAME"
+      },
+      "57": {
+        "action": "KEY_ESC",
+        "mode": "GAME"
+      },
+      "59": {
+        "action": "KEY_ENTER",
+        "mode": "GAME"
+      },
+      "60": {
+        "action": "KEY_UP",
+        "mode": "GAME"
+      },
+      "62": {
+        "action": "KEY_DOWN",
+        "mode": "GAME"
+      },
+      "64": {
+        "action": "KEY_LEFT",
+        "mode": "GAME"
+      },
+      "65": {
+        "action": "KEY_RIGHT",
+        "mode": "GAME"
+      },
+      "67": {
+        "action": "KEY_ALT",
+        "mode": "GAME"
+      },
+      "72": {
+        "action": "play_pause",
+        "mode": "AUDIO"
+      },
+      "74": {
+        "action": "next_track",
+        "mode": "AUDIO"
+      },
+      "76": {
+        "action": "prev_track",
+        "mode": "AUDIO"
+      }
+    },
+    "tv": {
+      "36": {
+        "action": "power_on",
+        "mode": "TV"
+      },
+      "38": {
+        "action": "key",
+        "key": "KEY_HOME",
+        "mode": "TV"
+      },
+      "40": {
+        "action": "key",
+        "key": "KEY_MENU",
+        "mode": "TV"
+      },
+      "41": {
+        "action": "key",
+        "key": "KEY_UP",
+        "mode": "TV"
+      },
+      "42": {
+        "action": "key",
+        "key": "KEY_ENTER",
+        "mode": "TV"
+      },
+      "43": {
+        "action": "key",
+        "key": "KEY_DOWN",
+        "mode": "TV"
+      },
+      "45": {
+        "action": "key",
+        "key": "KEY_LEFT",
+        "mode": "TV"
+      },
+      "46": {
+        "action": "key",
+        "key": "KEY_RETURN",
+        "mode": "TV"
+      },
+      "47": {
+        "action": "key",
+        "key": "KEY_RIGHT",
+        "mode": "TV"
+      },
+      "48": {
+        "action": "netflix",
+        "mode": "TV"
+      },
+      "50": {
+        "action": "youtube",
+        "mode": "TV"
+      },
+      "52": {
+        "action": "disney",
+        "mode": "TV"
+      },
+      "53": {
+        "action": "prime",
+        "mode": "TV"
+      },
+      "60": {
+        "action": "key",
+        "key": "KEY_VOLUP",
+        "mode": "TV"
+      },
+      "62": {
+        "action": "key",
+        "key": "KEY_VOLDOWN",
+        "mode": "TV"
+      },
+      "64": {
+        "action": "key",
+        "key": "KEY_MUTE",
+        "mode": "TV"
+      },
+      "65": {
+        "action": "key",
+        "key": "KEY_CHUP",
+        "mode": "TV"
+      },
+      "67": {
+        "action": "key",
+        "key": "KEY_CHDOWN",
+        "mode": "TV"
+      }
+    }
+  }
+}

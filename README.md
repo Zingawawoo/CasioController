@@ -2,26 +2,34 @@
 
 Turn your Casio CT-S100 (or any 61-key MIDI keyboard) into a universal
 remote. Each key can trigger **smart lights**, a **Samsung TV**, **keyboard
-inputs for games**, or **audio playback** — whatever you map it to.
+inputs for games**, or **audio playback** — whatever you map it to. A single
+key can fire multiple actions in parallel (e.g. TV on → Netflix → two lights
+go red), and mappings are grouped into **profiles** you can switch between.
 
-Keys are edited in a small dark-themed GUI and saved to `mappings.json`.
-A separate listener reads MIDI in real time and fires the matching action
-asynchronously, so slow actions (TV, lights) never block each other.
+Keys are edited in a dark-themed GUI with a real piano layout and saved to
+`profiles.json`. A separate listener reads MIDI in real time and fires the
+matching actions asynchronously, so slow actions (TV, lights) never block
+each other.
 
 ## Features
 
-- Live MIDI listener (`main.py`) that dispatches key presses by mode
-- Editor GUI (`gui.py`) for all 61 keys (C2–C7) with:
-  - Mode + action dropdowns
-  - Color picker and brightness slider for lights
-  - TV remote-key picker
-  - Save + Launch Controller buttons
-- Four mode handlers that can be extended:
-  - `modes/lights.py`  — Govee LAN
-  - `modes/tv.py`      — Samsung TV WebSocket
+- **Profiles** — named mapping sets, with three built-in defaults:
+  - `tv` — remote-style layout: power, apps, volume, channels, D-pad.
+  - `lights` — on/off, scenes, color palette across octaves, per-lamp control.
+  - `pc` — WASD + modifiers + arrows + media keys for gaming/keyboard use.
+- **Piano layout editor** — the GUI renders all 61 keys (C2–C7) as an actual
+  piano. Click a key to edit it; mapped keys show a colored badge by mode.
+- **Multi-action keys** — stack several actions under one key. The dispatcher
+  runs them concurrently, so "TV on + Netflix + both lights red" is one press.
+- **Multi-light control** — `config.json` holds a list of Govee devices, each
+  with a user-defined name; a light action targets any subset via checkboxes
+  (default: all lights).
+- **Four extensible mode handlers**:
+  - `modes/lights.py`  — Govee LAN (discovers devices, matches by MAC suffix)
+  - `modes/tv.py`      — Samsung TV WebSocket (keys + app launch)
   - `modes/game.py`    — keyboard emulation via pynput
   - `modes/audio.py`   — stub (drop Sonos / Spotify in here)
-- Async from end to end so lights, TV, games and audio can fire concurrently
+- Async end-to-end so lights, TV, games and audio fire in parallel.
 
 ## Quick start
 
@@ -36,12 +44,18 @@ pip install -r requirements.txt
 Edit `config.json` with your own device info (see below), then:
 
 ```bash
-python gui.py        # edit mappings
-python main.py       # run the controller
+python gui.py        # edit mappings / profiles, start/stop the controller
+python main.py       # or run the controller headless (uses the active profile)
 ```
 
+The GUI has a **Start controller** button that spawns `main.py` as a
+subprocess and streams its log into a panel at the bottom, so you don't
+need a second terminal. Hit the same button to stop it.
+
 Plug the Casio in before launching `main.py` so the `CASIO USB-MIDI`
-port shows up.
+port shows up. On first run, `profiles.json` is generated with the three
+default profiles (any pre-existing `mappings.json` is imported as a
+`custom` profile).
 
 ## Configuration
 
@@ -49,21 +63,35 @@ port shows up.
 
 ```json
 {
-  "govee":      { "device_mac": "AA:BB:CC:DD:EE:FF", "device_model": "H6159" },
-  "samsung_tv": { "host": "192.168.1.100", "port": 8002, "name": "CasioController" },
+  "govee": {
+    "devices": [
+      {"name": "tv_light", "mac": "60:74:F4:A6:C3:C5", "model": "H6199"},
+      {"name": "lamp_1",   "mac": "5C:E7:53:20:BA:EA", "model": "H6008"},
+      {"name": "lamp_2",   "mac": "5C:E7:53:14:88:08", "model": "H6008"}
+    ]
+  },
+  "samsung_tv": { "host": "192.168.1.174", "port": 8002, "name": "CasioController" },
   "midi":       { "port_name": "CASIO USB-MIDI" }
 }
 ```
+
+The `govee.devices` list is the source of names used in light-targeting —
+pick anything memorable (`lamp_1`, `desk`, `kitchen`, …). In the GUI,
+LIGHTS actions get a checkbox per device so one key can hit any subset.
 
 ### Finding your Govee MAC
 
 1. Enable **LAN Control** in the Govee Home app (Device ▸ Settings ▸ LAN Control).
 2. Find the device's IP in your router admin page, then look up its MAC.
-3. Or run `arp -a` on a machine on the same Wi-Fi and match the IP to a MAC.
-4. Paste the MAC into `config.json`.
+3. Or run `ip neigh` (or `arp -a`) on a machine on the same Wi-Fi and match
+   the IP to a MAC.
+4. Paste the 6-byte MAC into `config.json` — the handler matches it by
+   suffix against Govee's full 8-byte device ID.
 
-Only some Govee models support LAN mode. If yours doesn't, the `modes/lights.py`
-handler can be swapped for the cloud API with minimal changes.
+Only some Govee models support LAN mode (H6008, H6159, H6076, etc.). A few
+models — notably the **H6199 TV light bar** — don't respond to LAN scans.
+Unreachable devices are logged as warnings and skipped at dispatch time,
+so the rest of your lights still work.
 
 ### Finding your Samsung TV IP
 
@@ -72,9 +100,8 @@ handler can be swapped for the cloud API with minimal changes.
    `Samsung` or `TIZEN`.
 3. Put the IP in `config.json`.
 
-The first time `main.py` (or any TV action in the GUI) runs, the TV will
-prompt you to allow the new remote. Accept it — the pairing token is saved
-to `tv_token.txt` so you only do it once.
+The first time a TV action runs, the TV will prompt you to allow the new
+remote. Accept it — the pairing token is saved to `tv_token.txt`.
 
 ### MIDI port
 
@@ -84,19 +111,56 @@ fall back to the first available port (it prints a warning when it does).
 
 ## How mappings work
 
-`mappings.json` is a plain JSON file keyed by MIDI note number:
+`profiles.json` wraps multiple profiles and the currently active one:
 
 ```json
 {
-  "48": { "mode": "LIGHTS", "action": "color", "color": "#ff0000", "brightness": 80 },
-  "50": { "mode": "TV",     "action": "netflix" },
-  "52": { "mode": "GAME",   "action": "KEY_SPACE" },
-  "72": { "mode": "AUDIO",  "action": "play_pause" }
+  "active": "lights",
+  "profiles": {
+    "tv":     { "36": {"mode": "TV",     "action": "power_on"}, "...": "..." },
+    "lights": { "48": {"mode": "LIGHTS", "action": "color", "color": "#ff0000", "brightness": 80} },
+    "pc":     { "36": {"mode": "GAME",   "action": "KEY_W"}, "...": "..." }
+  }
 }
 ```
 
-Middle C is MIDI note 60. The GUI shows note names alongside the number so
-you don't have to memorise them.
+Each profile is a `{midi_note: entry}` object. Middle C is MIDI note 60;
+the piano view shows note names so you don't have to memorize numbers.
+
+### Single-action vs. multi-action entries
+
+A single-action entry is a flat dict:
+
+```json
+"48": { "mode": "TV", "action": "netflix" }
+```
+
+To fire several actions from one key, wrap them in an `actions` list:
+
+```json
+"60": {
+  "actions": [
+    { "mode": "TV",     "action": "power_on" },
+    { "mode": "TV",     "action": "netflix" },
+    { "mode": "LIGHTS", "action": "color", "color": "#ff0000", "brightness": 60 }
+  ]
+}
+```
+
+The dispatcher runs all entries in an `actions` list concurrently via
+`asyncio.gather`, so the TV, lights, and anything else start in parallel.
+
+### Scoping lights
+
+A LIGHTS entry can include `targets`, a list of device names from
+`config.json`:
+
+```json
+"40": { "mode": "LIGHTS", "action": "turn_on", "targets": ["lamp_1", "lamp_2"] }
+```
+
+Omit `targets` (or include every device) and the action fans out to every
+configured light.
 
 ### Available actions
 
@@ -128,10 +192,15 @@ same contract.
   the TV screen and hit Allow. It's only once.
 - **Govee device not found.** — Double-check LAN Control is on in the app
   and that the machine running the controller is on the same subnet as
-  the light.
+  the light. If a specific model (e.g. H6199) doesn't appear in scans,
+  it probably doesn't support LAN mode.
 - **Keys do nothing in games on macOS.** — Give your terminal /
   Python Accessibility permission (System Settings ▸ Privacy & Security ▸
   Accessibility).
+- **Remote-desktop permission pop-ups on Linux/Wayland.** — GAME-mode
+  keypresses go through pynput, which on Wayland asks the portal each
+  time. Install `ydotool` and give your user access to `/dev/uinput` (via
+  an `input`-group udev rule) to bypass the portal.
 
 ## License
 

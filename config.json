@@ -1,10 +1,12 @@
 {
   "govee": {
-    "device_mac": "AA:BB:CC:DD:EE:FF",
-    "device_model": "H6159"
+    "devices": [
+      {"name": "lamp_1", "mac": "5C:E7:53:20:BA:EA", "model": "H6008"},
+      {"name": "lamp_2", "mac": "5C:E7:53:14:88:08", "model": "H6008"}
+    ]
   },
   "samsung_tv": {
-    "host": "192.168.1.100",
+    "host": "192.168.1.174",
     "port": 8002,
     "name": "CasioController"
   },

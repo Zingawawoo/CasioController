@@ -14,9 +14,12 @@ import os
 
 try:
     from samsungtvws.async_remote import SamsungTVWSAsyncRemote  # type: ignore
+    from samsungtvws.remote import ChannelEmitCommand, SendRemoteKey  # type: ignore
     _TV_AVAILABLE = True
 except Exception:  # pragma: no cover - optional dependency
     SamsungTVWSAsyncRemote = None  # type: ignore
+    ChannelEmitCommand = None  # type: ignore
+    SendRemoteKey = None  # type: ignore
     _TV_AVAILABLE = False
 
 
@@ -34,6 +37,11 @@ APP_IDS = {
 
 _remote = None
 _lock = asyncio.Lock()
+
+# Keep the connect attempt short — a Samsung TV that's powered off won't
+# answer on port 8002 at all, and we'd rather fail loudly than hang the
+# dispatcher forever.
+CONNECT_TIMEOUT = 4.0
 
 
 def _load_config() -> dict:
@@ -58,40 +66,78 @@ async def _get_remote():
             return _remote
 
         cfg = _load_config()["samsung_tv"]
-        _remote = SamsungTVWSAsyncRemote(
-            host=cfg["host"],
-            port=cfg.get("port", 8002),
-            token_file=TOKEN_PATH,
+        host = cfg["host"]
+        port = cfg.get("port", 8002)
+
+        remote = SamsungTVWSAsyncRemote(
+            host=host, port=port, token_file=TOKEN_PATH,
             name=cfg.get("name", "CasioController"),
         )
-        await _remote.start_listening()
+        try:
+            await asyncio.wait_for(remote.start_listening(),
+                                   timeout=CONNECT_TIMEOUT)
+        except asyncio.TimeoutError:
+            # Clean up the half-open remote so the next keypress retries
+            # instead of finding a broken cached instance.
+            try:
+                await remote.close()
+            except Exception:
+                pass
+            raise RuntimeError(
+                f"TV at {host}:{port} didn't respond within "
+                f"{CONNECT_TIMEOUT:.0f}s. Is it powered on? "
+                "(Standby is fine; fully off won't answer.)"
+            )
+        except Exception as e:
+            try:
+                await remote.close()
+            except Exception:
+                pass
+            raise RuntimeError(
+                f"TV at {host}:{port} couldn't connect: {e}"
+            )
+
+        _remote = remote
         return _remote
 
 
-async def power_on() -> None:
-    """Toggle power (Samsung's WebSocket API uses the same key for on/off)."""
-    remote = await _get_remote()
-    await remote.send_command("KEY_POWER")
+def _clear_cached_remote() -> None:
+    """Drop the cached connection so the next keypress opens a fresh one."""
+    global _remote
+    _remote = None
 
 
-async def launch_app(app_id: str) -> None:
-    """Launch a Tizen app by numeric app ID."""
+SEND_TIMEOUT = 4.0
+
+
+async def _send(command) -> None:
+    """Wrap `remote.send_command` with a timeout + cache-invalidation.
+
+    If the TV drops the socket between keypresses the cached remote will
+    error or hang; wiping the cache lets the next press reconnect.
+    """
     remote = await _get_remote()
-    # Newer samsungtvws versions expose app launch via a dedicated helper.
-    if hasattr(remote, "run_app"):
-        await remote.run_app(app_id)
-    else:
-        # Fallback for older API shapes.
-        await remote.send_command({"method": "ms.channel.emit",
-                                    "params": {"event": "ed.apps.launch",
-                                               "to": "host",
-                                               "data": {"appId": app_id}}})
+    try:
+        await asyncio.wait_for(remote.send_command(command),
+                               timeout=SEND_TIMEOUT)
+    except Exception as e:
+        _clear_cached_remote()
+        raise RuntimeError(f"TV send failed: {e}")
 
 
 async def send_key(key: str) -> None:
     """Send a raw remote key like KEY_VOLUP, KEY_UP, KEY_ENTER."""
-    remote = await _get_remote()
-    await remote.send_command(key)
+    await _send(SendRemoteKey.click(key))
+
+
+async def power_on() -> None:
+    """Toggle power (Samsung's WebSocket API uses the same key for on/off)."""
+    await send_key("KEY_POWER")
+
+
+async def launch_app(app_id: str) -> None:
+    """Launch a Tizen app by numeric app ID."""
+    await _send(ChannelEmitCommand.launch_app(app_id))
 
 
 # ---- Dispatcher ------------------------------------------------------------
