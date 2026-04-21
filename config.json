@@ -1,0 +1,14 @@
+{
+  "govee": {
+    "device_mac": "AA:BB:CC:DD:EE:FF",
+    "device_model": "H6159"
+  },
+  "samsung_tv": {
+    "host": "192.168.1.100",
+    "port": 8002,
+    "name": "CasioController"
+  },
+  "midi": {
+    "port_name": "CASIO USB-MIDI"
+  }
+}

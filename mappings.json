@@ -1,0 +1,29 @@
+{
+  "36": {"mode": "LIGHTS", "action": "turn_on"},
+  "38": {"mode": "LIGHTS", "action": "turn_off"},
+  "40": {"mode": "LIGHTS", "action": "movie_mode"},
+  "41": {"mode": "LIGHTS", "action": "party_mode"},
+  "43": {"mode": "LIGHTS", "action": "sleep_mode"},
+  "45": {"mode": "LIGHTS", "action": "color", "color": "#ff0000", "brightness": 80},
+  "47": {"mode": "LIGHTS", "action": "color", "color": "#00ff88", "brightness": 60},
+
+  "48": {"mode": "TV", "action": "power_on"},
+  "50": {"mode": "TV", "action": "netflix"},
+  "52": {"mode": "TV", "action": "youtube"},
+  "53": {"mode": "TV", "action": "disney"},
+  "55": {"mode": "TV", "action": "prime"},
+  "57": {"mode": "TV", "action": "key", "key": "KEY_VOLUP"},
+  "59": {"mode": "TV", "action": "key", "key": "KEY_VOLDOWN"},
+
+  "60": {"mode": "GAME", "action": "KEY_SPACE"},
+  "62": {"mode": "GAME", "action": "KEY_W"},
+  "64": {"mode": "GAME", "action": "KEY_A"},
+  "65": {"mode": "GAME", "action": "KEY_S"},
+  "67": {"mode": "GAME", "action": "KEY_D"},
+  "69": {"mode": "GAME", "action": "KEY_SHIFT"},
+  "71": {"mode": "GAME", "action": "KEY_CTRL"},
+
+  "72": {"mode": "AUDIO", "action": "play_pause"},
+  "74": {"mode": "AUDIO", "action": "next_track"},
+  "76": {"mode": "AUDIO", "action": "prev_track"}
+}

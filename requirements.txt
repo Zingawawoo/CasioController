@@ -1,0 +1,6 @@
+mido
+python-rtmidi
+govee-lan-api
+samsungtvws[async]
+pynput
+requests
