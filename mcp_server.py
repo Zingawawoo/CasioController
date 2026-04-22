@@ -5,13 +5,19 @@ listener as MCP tools. Runs locally over stdio so Claude Desktop (or
 Claude Code) can call them directly — no cloud sandbox in between, which
 means it can still reach devices on your LAN.
 
-Register with Claude Desktop by adding to claude_desktop_config.json:
+Works on macOS, Linux, and Windows. Register it in
+claude_desktop_config.json:
+
+    macOS:   ~/Library/Application Support/Claude/claude_desktop_config.json
+    Windows: %APPDATA%\\Claude\\claude_desktop_config.json
+
+Example config:
 
     {
       "mcpServers": {
         "casio-controller": {
           "command": "python",
-          "args": ["/absolute/path/to/mcp_server.py"]
+          "args": ["C:\\\\path\\\\to\\\\casiocontroller\\\\mcp_server.py"]
         }
       }
     }
@@ -25,6 +31,7 @@ from typing import Literal
 
 from mcp.server.fastmcp import FastMCP
 
+import profiles as profile_store
 from modes import lights, tv, game, audio
 from modes.tv import APP_IDS
 
@@ -33,39 +40,52 @@ mcp = FastMCP("casio-controller")
 
 
 # ---- Lights ----------------------------------------------------------------
+# The lights handlers accept a `cfg` dict (same shape the MIDI dispatcher
+# passes them). `targets` — a list of device names from config.json —
+# scopes an action to specific lamps; omit it to fan out to every lamp.
 
-@mcp.tool()
-async def lights_turn_on() -> str:
-    """Turn the Govee light on (keeps last color/brightness)."""
-    await lights.turn_on()
-    return "lights on"
-
-
-@mcp.tool()
-async def lights_turn_off() -> str:
-    """Turn the Govee light off."""
-    await lights.turn_off()
-    return "lights off"
+def _light_cfg(action: str, targets: list[str] | None = None, **extra) -> dict:
+    cfg: dict = {"action": action, **extra}
+    if targets:
+        cfg["targets"] = targets
+    return cfg
 
 
 @mcp.tool()
-async def lights_set_color(hex_color: str, brightness: int = 100) -> str:
-    """Set the light to a specific color and brightness.
+async def lights_turn_on(targets: list[str] | None = None) -> str:
+    """Turn configured Govee lights on. Pass `targets` to scope to specific lamps."""
+    await lights.turn_on(_light_cfg("turn_on", targets))
+    return "lights on" + (f" ({', '.join(targets)})" if targets else "")
 
-    hex_color:  e.g. "#ff6a00"
-    brightness: 1-100
-    """
-    await lights.set_color(hex_color, brightness)
-    return f"color {hex_color} @ {brightness}"
+
+@mcp.tool()
+async def lights_turn_off(targets: list[str] | None = None) -> str:
+    """Turn configured Govee lights off. Pass `targets` to scope to specific lamps."""
+    await lights.turn_off(_light_cfg("turn_off", targets))
+    return "lights off" + (f" ({', '.join(targets)})" if targets else "")
+
+
+@mcp.tool()
+async def lights_set_color(
+    hex_color: str,
+    brightness: int = 100,
+    targets: list[str] | None = None,
+) -> str:
+    """Set a specific color and brightness (1-100). Optional `targets` list."""
+    cfg = _light_cfg("color", targets, color=hex_color, brightness=brightness)
+    await lights.set_color(cfg, hex_color, brightness)
+    return f"color {hex_color} @ {brightness}" + (
+        f" ({', '.join(targets)})" if targets else "")
 
 
 @mcp.tool()
 async def lights_preset(
     preset: Literal["movie_mode", "party_mode", "sleep_mode"],
+    targets: list[str] | None = None,
 ) -> str:
-    """Activate a preset lighting scene."""
+    """Activate a preset scene."""
     fn = getattr(lights, preset)
-    await fn()
+    await fn(_light_cfg(preset, targets))
     return f"preset {preset} activated"
 
 
@@ -132,6 +152,39 @@ async def audio_set_volume(level: int) -> str:
     """Set volume 0-100."""
     await audio.set_volume(level)
     return f"volume {level}"
+
+
+# ---- Profiles --------------------------------------------------------------
+# Switching profiles from an MCP client changes which mappings the MIDI
+# listener uses on the next key press — useful for "put the keyboard in
+# TV mode" style commands.
+
+@mcp.tool()
+async def profile_list() -> list[str]:
+    """Return every profile defined in profiles.json."""
+    data = profile_store.load()
+    return list(data.get("profiles", {}).keys())
+
+
+@mcp.tool()
+async def profile_active() -> str:
+    """Return the currently active profile name."""
+    data = profile_store.load()
+    return data.get("active", "")
+
+
+@mcp.tool()
+async def profile_switch(name: str) -> str:
+    """Set the active profile. main.py hot-reloads on the next key press."""
+    data = profile_store.load()
+    profiles = data.get("profiles", {})
+    if name not in profiles:
+        raise ValueError(
+            f"unknown profile '{name}'. Available: {', '.join(profiles)}"
+        )
+    data["active"] = name
+    profile_store.save(data)
+    return f"active profile -> {name}"
 
 
 if __name__ == "__main__":

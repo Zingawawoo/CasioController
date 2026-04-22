@@ -206,12 +206,57 @@ claude mcp add casio-controller python /absolute/path/to/mcp_server.py
 
 **Tools exposed:**
 
-- `lights_turn_on`, `lights_turn_off`
-- `lights_set_color(hex_color, brightness)`
-- `lights_preset(preset)` — `movie_mode` / `party_mode` / `sleep_mode`
+- `lights_turn_on(targets?)`, `lights_turn_off(targets?)`
+- `lights_set_color(hex_color, brightness, targets?)`
+- `lights_preset(preset, targets?)` — `movie_mode` / `party_mode` / `sleep_mode`
 - `tv_power`, `tv_launch_app(app)`, `tv_send_key(key)`
 - `game_press_key(key, hold_ms)`
 - `audio_play_pause`, `audio_next_track`, `audio_prev_track`, `audio_set_volume`
+- `profile_list`, `profile_active`, `profile_switch(name)`
+
+`targets` is a list of device names from `config.json`; omit it to hit
+every configured light. Switching profiles via MCP takes effect on the
+next key press — `main.py` hot-reloads `profiles.json` automatically.
+
+## Running on Windows
+
+Everything is pure Python and cross-platform. Concrete notes:
+
+- **Install Python 3.11+** from python.org and tick "Add to PATH" in the
+  installer. The Microsoft Store build also works (you'll just run it as
+  `py` or `python3` instead of `python`).
+- **Create and activate a venv:**
+  ```powershell
+  python -m venv .venv
+  .venv\Scripts\activate
+  pip install -r requirements.txt
+  ```
+- **`python-rtmidi` wheels** are prebuilt for common Python versions on
+  Windows, so `pip install` just works. If pip tries to compile from
+  source, install the "Build Tools for Visual Studio" (C++ workload) and
+  retry.
+- **MIDI port name.** Windows sometimes appends a number, e.g.
+  `CASIO USB-MIDI 0`. The controller falls back to the first port if it
+  can't find an exact match, and logs the real name — paste that into
+  `config.json`.
+- **Claude Desktop MCP config** lives at
+  `%APPDATA%\Claude\claude_desktop_config.json`. Use an absolute path to
+  `mcp_server.py` with double-escaped backslashes:
+  ```json
+  {
+    "mcpServers": {
+      "casio-controller": {
+        "command": "python",
+        "args": ["C:\\Users\\you\\casiocontroller\\mcp_server.py"]
+      }
+    }
+  }
+  ```
+  If `python` isn't on PATH, swap in `"py"` or the full path to
+  `python.exe` inside your venv.
+- **Game mode (pynput).** Works against most apps out of the box. For
+  games with anti-cheat, you may need to run the controller (or the
+  terminal launching it) as administrator.
 
 ## Adding your own features
 
