@@ -171,6 +171,48 @@ configured light.
 | GAME   | Any `KEY_*` name — letters (`KEY_W`), arrows (`KEY_UP`), modifiers (`KEY_SHIFT`), `KEY_SPACE`, `KEY_ENTER`, etc. |
 | AUDIO  | `play_pause`, `next_track`, `prev_track`, `set_volume` (stubbed — wire up your own backend) |
 
+## Using it from Claude (MCP)
+
+`mcp_server.py` exposes the same handlers as MCP tools so Claude Desktop
+or Claude Code can control your lights and TV directly. The server runs
+locally on your machine, so it can still reach devices on your LAN.
+
+**Claude Desktop** — edit `claude_desktop_config.json`:
+
+```
+macOS:   ~/Library/Application Support/Claude/claude_desktop_config.json
+Windows: %APPDATA%\Claude\claude_desktop_config.json
+```
+
+```json
+{
+  "mcpServers": {
+    "casio-controller": {
+      "command": "python",
+      "args": ["/absolute/path/to/casiocontroller/mcp_server.py"]
+    }
+  }
+}
+```
+
+Restart the desktop app. You should see the tools listed under the 🔌
+icon.
+
+**Claude Code:**
+
+```bash
+claude mcp add casio-controller python /absolute/path/to/mcp_server.py
+```
+
+**Tools exposed:**
+
+- `lights_turn_on`, `lights_turn_off`
+- `lights_set_color(hex_color, brightness)`
+- `lights_preset(preset)` — `movie_mode` / `party_mode` / `sleep_mode`
+- `tv_power`, `tv_launch_app(app)`, `tv_send_key(key)`
+- `game_press_key(key, hold_ms)`
+- `audio_play_pause`, `audio_next_track`, `audio_prev_track`, `audio_set_volume`
+
 ## Adding your own features
 
 Each mode is a self-contained module in `modes/` that exposes an async
